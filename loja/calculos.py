@@ -1,5 +1,5 @@
-FRETE_FIXO = 15.0  # Valor fixo do frete em reais
-FRETE_GRATIS_A_PARTIR_DE = 200.0  # Valor mínimo para frete grátis em reais
+FRETE_FIXO = 15.0  
+FRETE_GRATIS_A_PARTIR_DE = 200.0  
 
 def total_carrinho(itens):
     """Recebe uma lista de (preço, quantidade) e devolve o total."""
@@ -16,3 +16,4 @@ def frete(valor_da_compra):
     if valor_da_compra >= FRETE_GRATIS_A_PARTIR_DE:
         return 0.0
     return FRETE_FIXO
+
