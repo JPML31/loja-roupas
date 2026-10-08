@@ -11,14 +11,21 @@ def test_contrato_nao_vira_objeto():
 
 def test_promocao_sem_aplicar_nao_nasce():
     class BlackFriday(Promocao):
-        def aplicar_desconto(self, subtotal):   # nome errado
+        def aplicar_desconto(self, subtotal):
             return subtotal * 0.5
 
     with pytest.raises(TypeError):
         BlackFriday()
 
 
-@pytest.mark.parametrize("promocao", [SemPromocao(), Percentual(10), Cupom(20)])
+@pytest.mark.parametrize(
+    "promocao",
+    [
+        SemPromocao(),
+        Percentual(10),
+        Cupom(20),
+    ],
+)
 def test_todas_seguem_o_contrato(promocao):
     assert isinstance(promocao, Promocao)
 
