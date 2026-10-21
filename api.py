@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from loja.produto import Calca, Camiseta, Produto
+from pydantic import BaseModel, Field
 
 app = FastAPI(title="Loja de Roupas")
 
@@ -9,6 +10,9 @@ CATALOGO = {
     3: Produto("Moletom", 159.90, "P"),
 }
 
+class ItemPedido(BaseModel):
+    produto_id: int
+    quantidade: int = Field(gt=0)
 
 def com_id(produto_id, produto):
     return {"id": produto_id, **produto.para_dict()}
@@ -20,8 +24,22 @@ def inicio():
 
 
 @app.get("/produtos")
-def listar_produtos():
-    return [com_id(i, p) for i, p in CATALOGO.items()]
+def listar_produtos(
+    tamanho: str | None = None,
+    preco_max: float | None = None
+):
+    resultado = []
+
+    for produto_id, produto in CATALOGO.items():
+        if tamanho is not None and produto.tamanho != tamanho:
+            continue
+
+        if preco_max is not None and produto.preco > preco_max:
+            continue
+
+        resultado.append(com_id(produto_id, produto))
+
+    return resultado
 
 
 @app.get("/produtos/{produto_id}")
@@ -33,3 +51,20 @@ def buscar_produto(produto_id: int):
         )
 
     return com_id(produto_id, CATALOGO[produto_id])
+
+
+@app.post("/carrinho/itens", status_code=201)
+def adicionar_item(item: ItemPedido):
+    if item.produto_id not in CATALOGO:
+        raise HTTPException(
+            status_code=404,
+            detail="produto não encontrado"
+        )
+
+    return {
+        "produto": com_id(
+            item.produto_id,
+            CATALOGO[item.produto_id]
+        ),
+        "quantidade": item.quantidade
+    }
