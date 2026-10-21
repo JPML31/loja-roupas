@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from loja.produto import Calca, Camiseta, Produto
 from pydantic import BaseModel, Field
+from loja.carrinho import Carrinho
+from loja.promocao import Percentual
 
 app = FastAPI(title="Loja de Roupas")
 
@@ -61,6 +63,16 @@ def adicionar_item(item: ItemPedido):
             detail="produto não encontrado"
         )
 
+    produto = CATALOGO[item.produto_id]
+    carrinho.adicionar(produto, item.quantidade)
+
+    return {
+        "adicionado": com_id(item.produto_id, produto),
+        "quantidade": item.quantidade,
+        "pecas_no_carrinho": carrinho.quantidade_de_pecas,
+    }
+
+
     return {
         "produto": com_id(
             item.produto_id,
@@ -68,3 +80,24 @@ def adicionar_item(item: ItemPedido):
         ),
         "quantidade": item.quantidade
     }
+
+
+def novo_carrinho():
+    return Carrinho(Percentual(10))
+
+
+carrinho = novo_carrinho()
+
+@app.get("/carrinho/total")
+def total_do_carrinho():
+    return {
+        "pecas": carrinho.quantidade_de_pecas,
+        "subtotal": round(carrinho.subtotal, 2),
+        "total": round(carrinho.total, 2),
+        
+    }
+
+@app.delete("/carrinho", status_code=204)
+def esvaziar_carrinho():
+    global carrinho
+    carrinho = novo_carrinho()
